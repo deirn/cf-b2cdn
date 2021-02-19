@@ -102,6 +102,11 @@ async function handleRequest(event) {
 
     // display the possible error message faces when a user visits /faces or /faces.txt
     r.get("/faces(\\.txt)?", getFacesPage)
+    if (false)
+        r.get('/_refreshB2AuthToken', request => {
+          handleAuthCronJob(null)
+          return new Response("", { status: 204, })
+        })
     r.get('.*/', request => getB2Directory(request, B2))
     // catch-all route to return a Backblaze B2 file (should be last router rule)
     r.get('.*', request => getB2File(request, B2))
