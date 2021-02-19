@@ -7,5 +7,8 @@
     "license": "MIT",
     "dependencies": {
         "serverless-cloudflare-workers": "^1.2.0"
+    },
+    "devDependencies": {
+        "@cloudflare/wrangler": "^1.13.0"
     }
 }

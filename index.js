@@ -35,7 +35,7 @@ function addSecurityHeaders(response) {
     if(/text\/html/i.test(contentType)) {
         // "unsafe-inline" for style-src doesn't seem like that big a deal
         // but it will prevent you from getting an A+ on https://securityheaders.com/
-        response.headers.set("Content-Security-Policy", `default-src 'self' cdnjs.cloudflare.com; frame-ancestors 'self'`)
+        response.headers.set("Content-Security-Policy", `default-src 'self' cdn.jsdelivr.net; frame-ancestors 'self'`)
         // forbid geolocation and microphone usage by this page or any iframes on it
         response.headers.set("Permissions-Policy", `geolocation=(),microphone=()`)
         response.headers.set("Referrer-Policy", "no-referrer-when-downgrade")
