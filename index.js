@@ -102,6 +102,7 @@ async function handleRequest(event) {
 
     // display the possible error message faces when a user visits /faces or /faces.txt
     r.get("/faces(\\.txt)?", getFacesPage)
+    r.get("/robots\\.txt", request => new Response("User-Agent: *\nDisallow: /\n", { status: 200, headers: { "Content-Type": "text/plain" }}))
     if (false)
         r.get('/_refreshB2AuthToken', request => {
           handleAuthCronJob(null)
