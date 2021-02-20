@@ -167,6 +167,7 @@ function convertFileInfoJsonToHTML(baseUrl, file, prefixLength) {
 function getHumanReadableFileSize(numBytes) {
     if(numBytes > 1099511627776) {  // 1 TiB
         numBytes = (numBytes / 1099511627776).toFixed(2)
+        numBytes = `${numBytes} TiB`
     }
     else if(numBytes > 1073741824) {  // 1 GiB
         numBytes = (numBytes / 1073741824).toFixed(2)
@@ -195,42 +196,42 @@ function getHumanReadableFileSize(numBytes) {
  * @param listings an array of HTML_LINE_ITEM items
  * @returns {string} an HTML template for the listing pages
  */
-const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!doctype html>
+const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>${currentDir}</title>
+    <title>${currentDir} - ${SITE_NAME}</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha256-T/zFmO5s/0aSwc6ics2KLxlfbewyRz6UNw1s3Ppf5gE=" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css" integrity="sha256-0fuNgzfNIlaClbDtmYyFxY8LTNCDrwsNshywr4AALy0=" crossorigin="anonymous">
   </head>
   <body class="bg-light">
     <div class="container">
-  <div class="py-5 text-center">
-    <h2>Directory ${currentDir}</h2>
-    <p class="lead">${fullPath}</p>
-  </div>
+      <div class="py-5 text-center">
+        <h2>${currentDir === "/" ? SITE_NAME : currentDir}</h2>
+        <p class="lead">${fullPath}</p>
+      </div>
 
-  <div class="row">
-    <div class="col-md-12">
-      <table class="table">
-        <thead class="thead-light">
-          <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Size</th>
-            <th scope="col">Uploaded</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${listings}
-        </tbody>
-      </table>
+      <div class="row">
+        <div class="col-md-12">
+          <table class="table table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Size</th>
+                <th scope="col">Uploaded</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${listings}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
-  </div>
-
-</div>
-</body>
+  </body>
 </html>
 `
 
@@ -251,21 +252,35 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!doctype html>
 const HTML_LINE_ITEM = (link, basename, size, uploaded, action) => {
     let icon
     if (link === "..") {
-        icon = "level-up"
+        icon = "level-up-alt"
     } else if (action === "folder") {
-        icon = "folder-o"
+        icon = "folder-open"
     } else if (/\.(jpe?g|png|bmp|tiff?|gif|webp|tga|cr2|nef|ico)$/i.test(basename)) {
-        icon = "file-image-o"
-    } else if (/\.(pub|txt|ini|cfg|css|js)$/i.test(basename)) {
-        icon = "file-text-o"
+        icon = "file-image"
+    } else if (/\.(pub|txt|ini|cfg)$/i.test(basename)) {
+        icon = "file-alt"
     } else if (/\.(mp4|mkv|wmv|flv|hls|ogv|avi)$/i.test(basename)) {
-        icon = "file-video-o"
+        icon = "file-video"
     } else if (/\.(mp3|wma|flac|ogg|aac|m4a)$/i.test(basename)) {
-        icon = "file-audio-o"
+        icon = "file-audio"
     } else if (/\.(zip|tgz|gz|tar|7z|rar|xz)$/i.test(basename)) {
-        icon = "file-archive-o"
+        icon = "file-archive"
+    } else if (/\.(docx?)$/i.test(basename)) {
+        icon = "file-word"
+    } else if (/\.(xlsx?)$/i.test(basename)) {
+        icon = "file-excel"
+    } else if (/\.(pp[st]x?)$/i.test(basename)) {
+        icon = "file-powerpoint"
+    } else if (/\.(pdf)$/i.test(basename)) {
+        icon = "file-pdf"
+    } else if (/\.([ch](?:pp)?|cs|css|js|json|java|vb[as]?|py)$/i.test(basename)) {
+        icon = "file-code"
+    } else if (/\.(csv)$/i.test(basename)) {
+        icon = "file-csv"
+    } else if (/\.(sig|asc)$/i.test(basename)) {
+        icon = "file-signature"
     } else {
-        icon = "file-o"
+        icon = "file"
     }
 
     return TEMPLATE_HTML_LINE_ITEM(link, basename, size, uploaded, icon)
@@ -274,7 +289,7 @@ const HTML_LINE_ITEM = (link, basename, size, uploaded, action) => {
 const TEMPLATE_HTML_LINE_ITEM = (link, basename, size, uploaded, icon) => `
 <tr>
     <th scope='row'>
-        <a href='${link}'><i class='fa fa-${icon}' aria-hidden="true"></i> ${basename}</a>
+        <a href='${link}'><i class='fas fa-fw fa-${icon}' aria-hidden="true"></i> ${basename}</a>
     </th>
     <td>${size}</td>
     <td class='date-field'>${uploaded}</td>

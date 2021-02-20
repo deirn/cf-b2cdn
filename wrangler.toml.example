@@ -6,10 +6,17 @@ workers_dev = false
 routes = ["example.com/*", "dir.example.com/*", "www.example.com/*"]
 zone_id = ""
 
-vars = { B2ACCESS = "Your B2 Application Access Key ID", B2BUCKET = "example-bucket", MAIN_DOMAIN = "example.com", DIR_DOMAIN = "dir.example.com" } }
-kv_namespaces = [
-    { binding = "B2CDN", id = "The ID of a KV namespace to read our auth token from", preview_id = "The ID of a preview KV namespace to read our auth token from" }
-]
+[vars]
+B2ACCESS = "Your B2 Application Access Key ID"
+B2BUCKET = "example-bucket"
+MAIN_DOMAIN = "example.com"
+DIR_DOMAIN = "dir.example.com"
+SITE_NAME
+
+[[kv_namespaces]]
+binding = "B2CDN"
+id = "The ID of a KV namespace to read our auth token from"
+preview_id = "The ID of a preview KV namespace to read our auth token from"
 
 [triggers]
 crons = ["3 */4 * * *"]
