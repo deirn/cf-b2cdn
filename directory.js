@@ -84,7 +84,7 @@ async function convertListFileNamesToHTML(request, response) {
 
     let listings = ''
     if(prefixLength > 0) {
-        listings = HTML_LINE_ITEM("..", "Up a Level", "", "")
+        listings = HTML_LINE_ITEM("..", "Parent directory", "", "")
     }
 
     const folders = []
@@ -140,6 +140,9 @@ async function convertListFileNamesToHTML(request, response) {
 function convertFileInfoJsonToHTML(baseUrl, file, prefixLength) {
     let url = new URL(baseUrl)
     let basename = file.fileName.substring(prefixLength)
+    if (!basename)
+        return "";
+
     let dateStr = "", size = ""
     if(file.action !== "folder") {
         let ts = new Date(file.uploadTimestamp)
@@ -215,7 +218,7 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
 
       <div class="row">
         <div class="col-md-12">
-          <table class="table table-hover">
+          <table class="table table-hover border bg-white">
             <thead class="thead-light">
               <tr>
                 <th scope="col">Name</th>
