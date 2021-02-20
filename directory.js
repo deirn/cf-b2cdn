@@ -230,7 +230,7 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
         <p class="lead">${escapeHtml(fullPath)}</p>
       </div>
 
-      <div class="row">
+      <div class="row mb-4">
         <div class="col-md-12">
           <table class="table table-hover border bg-white">
             <thead class="thead-light">
@@ -306,7 +306,7 @@ const HTML_LINE_ITEM = (link, basename, size, uploaded, action) => {
 const TEMPLATE_HTML_LINE_ITEM = (link, basename, size, uploaded, icon) => `
 <tr>
     <th scope="row">
-        <a href="${link}"><i class="fas fa-fw fa-${icon}" aria-hidden="true"></i> ${escapeHtml(basename)}</a>
+        <a href="${link}"><i class="fas fa-fw fa-lg fa-${icon}" aria-hidden="true"></i> ${escapeHtml(basename)}</a>
     </th>
     <td>${size}</td>
     <td class="date-field">${uploaded}</td>
