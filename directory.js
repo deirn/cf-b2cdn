@@ -7,6 +7,11 @@ import {
 import { rewriteErrorResponse } from './error_handling'
 
 
+function urlToB2Path(url) {
+    return decodeURIComponent(url.pathname.substring(1))  // chop off first / character
+}
+
+
 /**
  * Given a URL that ends in a slash (/), list files in the bucket that begin with
  * that prefix.
@@ -27,7 +32,7 @@ async function getB2Directory(request, b2) {
     const url = new URL(b2.data.apiUrl)
     url.pathname = B2_LIST_FILE_NAMES_ENDPOINT
 
-    const prefix = requestedUrl.pathname.substring(1)  // chop off first / character
+    const prefix = urlToB2Path(requestedUrl)
     console.log(`prefix = ${prefix}`)
 
     const requestBody = {
@@ -72,8 +77,8 @@ async function convertListFileNamesToHTML(request, response) {
     const requestUrl = new URL(request.url)
     const baseFileUrl = new URL(request.url)
     baseFileUrl.hostname = MAIN_DOMAIN
-    const fullPath = requestUrl.pathname.substring(1)
-    let currentDir = requestUrl.pathname.substring(1).match(/([^/]+)\/$/)
+    const fullPath = urlToB2Path(requestUrl)
+    let currentDir = fullPath.match(/([^/]+)\/$/)
     if(currentDir) {
         currentDir = currentDir[1]
     }
@@ -191,6 +196,15 @@ function getHumanReadableFileSize(numBytes) {
     return numBytes
 }
 
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+ }
+
 /**
  * Full HTML Template for the listing pages.
  *
@@ -212,8 +226,8 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
   <body class="bg-light">
     <div class="container">
       <div class="py-5 text-center">
-        <h2>${currentDir === "/" ? SITE_NAME : currentDir}</h2>
-        <p class="lead">${fullPath}</p>
+        <h1>${escapeHtml(currentDir === "/" ? SITE_NAME : currentDir)}</h1>
+        <p class="lead">${escapeHtml(fullPath)}</p>
       </div>
 
       <div class="row">
@@ -291,11 +305,11 @@ const HTML_LINE_ITEM = (link, basename, size, uploaded, action) => {
 
 const TEMPLATE_HTML_LINE_ITEM = (link, basename, size, uploaded, icon) => `
 <tr>
-    <th scope='row'>
-        <a href='${link}'><i class='fas fa-fw fa-${icon}' aria-hidden="true"></i> ${basename}</a>
+    <th scope="row">
+        <a href="${link}"><i class="fas fa-fw fa-${icon}" aria-hidden="true"></i> ${escapeHtml(basename)}</a>
     </th>
     <td>${size}</td>
-    <td class='date-field'>${uploaded}</td>
+    <td class="date-field">${uploaded}</td>
 </tr>
 `
 
