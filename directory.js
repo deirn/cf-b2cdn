@@ -143,7 +143,6 @@ async function convertListFileNamesToHTML(request, response) {
  * @returns {string} the HTML_LINE_ITEM template defined below filled out for this file in particular
  */
 function convertFileInfoJsonToHTML(baseUrl, file, prefixLength) {
-    let url = new URL(baseUrl)
     let basename = file.fileName.substring(prefixLength)
     if (!basename)
         return "";
@@ -155,9 +154,7 @@ function convertFileInfoJsonToHTML(baseUrl, file, prefixLength) {
         size = getHumanReadableFileSize(file.contentLength)
     }
 
-    url.pathname = file.fileName
-
-    return HTML_LINE_ITEM(url.toString(), basename, size, dateStr, file.action)
+    return HTML_LINE_ITEM(basename, basename, size, dateStr, file.action)
 }
 
 
