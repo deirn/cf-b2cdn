@@ -1,14 +1,14 @@
 import {
-    B2_LIST_FILE_NAMES_ENDPOINT,
-    CACHE_DIR_SECONDS,
-    HTML_CONTENT_TYPE,
-    KV_CONFIG_KEY,
-} from './constants'
-import { rewriteErrorResponse } from './error_handling'
+  B2_LIST_FILE_NAMES_ENDPOINT,
+  CACHE_DIR_SECONDS,
+  HTML_CONTENT_TYPE,
+  KV_CONFIG_KEY,
+} from './constants';
+import {rewriteErrorResponse} from './error_handling';
 
 
 function urlToB2Path(url) {
-    return decodeURIComponent(url.pathname.substring(1))  // chop off first / character
+  return decodeURIComponent(url.pathname.substring(1)); // chop off first / character
 }
 
 
@@ -18,49 +18,49 @@ function urlToB2Path(url) {
  *
  * @param {Request} request the user's request for a URL that ends in a slash
  * @param {object} b2 the b2config object
- * @returns {Promise<Response|Response>} an HTML page listing files and folders
+ * @return {Promise<Response|Response>} an HTML page listing files and folders
  */
 async function getB2Directory(request, b2) {
-    console.log("getB2Directory...")
+  console.log('getB2Directory...');
 
-    const requestedUrl = new URL(request.url)
-    console.log(`requestedUrl.pathname = ${requestedUrl.pathname}`)
-    if(requestedUrl.hostname !== DIR_DOMAIN) {
-        return rewriteErrorResponse(request, new Response(null, { status: 404, }))
-    }
+  const requestedUrl = new URL(request.url);
+  console.log(`requestedUrl.pathname = ${requestedUrl.pathname}`);
+  if (requestedUrl.hostname !== DIR_DOMAIN) {
+    return rewriteErrorResponse(request, new Response(null, {status: 404}));
+  }
 
-    const url = new URL(b2.data.apiUrl)
-    url.pathname = B2_LIST_FILE_NAMES_ENDPOINT
+  const url = new URL(b2.data.apiUrl);
+  url.pathname = B2_LIST_FILE_NAMES_ENDPOINT;
 
-    const prefix = urlToB2Path(requestedUrl)
-    console.log(`prefix = ${prefix}`)
+  const prefix = urlToB2Path(requestedUrl);
+  console.log(`prefix = ${prefix}`);
 
-    const requestBody = {
-        bucketId: b2.data.bucketId,
-        maxFileCount: 10000,
-        prefix: prefix,
-        delimiter: "/"
-    }
+  const requestBody = {
+    bucketId: b2.data.bucketId,
+    maxFileCount: 10000,
+    prefix: prefix,
+    delimiter: '/',
+  };
 
-    const response = await fetch(url.toString(), {
-        method: "POST",
-        headers: {
-            "Authorization": b2.data.authorizationToken,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody)
-    })
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      'Authorization': b2.data.authorizationToken,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody),
+  });
 
-    if(!response.ok) {
-        return rewriteErrorResponse(request, response)
-    }
-    const htmlResponse = await convertListFileNamesToHTML(request, response)
-    const cacheControl = `public, immutable, max-age=${CACHE_DIR_SECONDS}`
-    const expires = new Date(Date.now() + CACHE_DIR_SECONDS * 1000).toUTCString()
+  if (!response.ok) {
+    return rewriteErrorResponse(request, response);
+  }
+  const htmlResponse = await convertListFileNamesToHTML(request, response);
+  const cacheControl = `public, immutable, max-age=${CACHE_DIR_SECONDS}`;
+  const expires = new Date(Date.now() + CACHE_DIR_SECONDS * 1000).toUTCString();
 
-    htmlResponse.headers.set("Cache-Control", cacheControl)
-    htmlResponse.headers.set("Expires", expires)
-    return htmlResponse
+  htmlResponse.headers.set('Cache-Control', cacheControl);
+  htmlResponse.headers.set('Expires', expires);
+  return htmlResponse;
 }
 
 /**
@@ -69,67 +69,64 @@ async function getB2Directory(request, b2) {
  *
  * @param {Request} request the user's request
  * @param {Response} response the B2 response to our b2_list_file_names call
- * @returns {Promise<Response|Response>} an HTML page listing the files/folders
+ * @return {Promise<Response|Response>} an HTML page listing the files/folders
  */
 async function convertListFileNamesToHTML(request, response) {
-    console.log("convertListFileNamesToHTML...")
-    const respJson = await response.json()
-    const requestUrl = new URL(request.url)
-    const baseFileUrl = new URL(request.url)
-    baseFileUrl.hostname = MAIN_DOMAIN
-    const fullPath = urlToB2Path(requestUrl)
-    let currentDir = fullPath.match(/([^/]+)\/$/)
-    if(currentDir) {
-        currentDir = currentDir[1]
-    }
-    else {
-        currentDir = "/"
-    }
-    const prefixLength = fullPath.length
+  console.log('convertListFileNamesToHTML...');
+  const respJson = await response.json();
+  const requestUrl = new URL(request.url);
+  const baseFileUrl = new URL(request.url);
+  baseFileUrl.hostname = MAIN_DOMAIN;
+  const fullPath = urlToB2Path(requestUrl);
+  let currentDir = fullPath.match(/([^/]+)\/$/);
+  if (currentDir) {
+    currentDir = currentDir[1];
+  } else {
+    currentDir = '/';
+  }
+  const prefixLength = fullPath.length;
 
-    let listings = ''
-    if(prefixLength > 0) {
-        listings = HTML_LINE_ITEM("..", "Parent directory", "", "")
-    }
+  let listings = '';
+  if (prefixLength > 0) {
+    listings = HTML_LINE_ITEM('..', 'Parent directory', '', '');
+  }
 
-    const folders = []
-    const files = []
+  const folders = [];
+  const files = [];
 
-    // make sure folders show up first
-    for(const file of respJson.files) {
-        if(/(^|\/)\.bzEmpty$/.test(file.fileName)) {
-            // skip .bzEmpty files which are there to help create "folders"
-        }
-        else if(file.action === "folder") {
-            folders.push(file)
-        }
-        else {
-            files.push(file)
-        }
+  // make sure folders show up first
+  for (const file of respJson.files) {
+    if (/(^|\/)\.bzEmpty$/.test(file.fileName)) {
+      // skip .bzEmpty files which are there to help create "folders"
+    } else if (file.action === 'folder') {
+      folders.push(file);
+    } else {
+      files.push(file);
     }
+  }
 
-    // check if we received zero results. If so, this folder didn't exist
-    // so return a 404
-    if(!(folders.length || files.length)) {
-        let errorResponse = new Response("", {status: 404})
-        return rewriteErrorResponse(request, errorResponse)
-    }
+  // check if we received zero results. If so, this folder didn't exist
+  // so return a 404
+  if (!(folders.length || files.length)) {
+    const errorResponse = new Response('', {status: 404});
+    return rewriteErrorResponse(request, errorResponse);
+  }
 
-    for(const fldr of folders) {
-        listings += convertFileInfoJsonToHTML(requestUrl, fldr, prefixLength)
-    }
-    for(const file of files) {
-        listings += convertFileInfoJsonToHTML(baseFileUrl, file, prefixLength)
-    }
+  for (const fldr of folders) {
+    listings += convertFileInfoJsonToHTML(requestUrl, fldr, prefixLength);
+  }
+  for (const file of files) {
+    listings += convertFileInfoJsonToHTML(baseFileUrl, file, prefixLength);
+  }
 
-    let html = HTML_FILE_LIST(currentDir, "/" + fullPath, listings)
-    return new Response(html, {
-        status: 200,
-        statusText: "OK",
-        headers: {
-            "Content-Type": HTML_CONTENT_TYPE,
-        }
-    })
+  const html = HTML_FILE_LIST(currentDir, '/' + fullPath, listings);
+  return new Response(html, {
+    status: 200,
+    statusText: 'OK',
+    headers: {
+      'Content-Type': HTML_CONTENT_TYPE,
+    },
+  });
 }
 
 
@@ -140,21 +137,22 @@ async function convertListFileNamesToHTML(request, response) {
  * @param baseUrl a URL object or string that will make up the absolute link
  * @param file one file object from the list returned by b2_list_file_names
  * @param prefixLength the length of the path leading up to this file name
- * @returns {string} the HTML_LINE_ITEM template defined below filled out for this file in particular
+ * @return {string} the HTML_LINE_ITEM template defined below filled out for this file in particular
  */
 function convertFileInfoJsonToHTML(baseUrl, file, prefixLength) {
-    let basename = file.fileName.substring(prefixLength)
-    if (!basename)
-        return "";
+  const basename = file.fileName.substring(prefixLength);
+  if (!basename) {
+    return '';
+  }
 
-    let dateStr = "", size = ""
-    if(file.action !== "folder") {
-        let ts = new Date(file.uploadTimestamp)
-        dateStr = ts.toUTCString()
-        size = getHumanReadableFileSize(file.contentLength)
-    }
+  let dateStr = ''; let size = '';
+  if (file.action !== 'folder') {
+    const ts = new Date(file.uploadTimestamp);
+    dateStr = ts.toUTCString();
+    size = getHumanReadableFileSize(file.contentLength);
+  }
 
-    return HTML_LINE_ITEM(basename, basename, size, dateStr, file.action)
+  return HTML_LINE_ITEM(basename, basename, size, dateStr, file.action);
 }
 
 
@@ -167,40 +165,36 @@ function convertFileInfoJsonToHTML(baseUrl, file, prefixLength) {
  * i.e. 4404019 will return "4.2 MiB", 5001708 will return "4.77 GiB", etc.
  *
  * @param numBytes the number to be converted
- * @returns {string} the rounded number with the SI unit appended to the end
+ * @return {string} the rounded number with the SI unit appended to the end
  */
 function getHumanReadableFileSize(numBytes) {
-    if(numBytes > 1099511627776) {  // 1 TiB
-        numBytes = (numBytes / 1099511627776).toFixed(2)
-        numBytes = `${numBytes} TiB`
-    }
-    else if(numBytes > 1073741824) {  // 1 GiB
-        numBytes = (numBytes / 1073741824).toFixed(2)
-        numBytes = `${numBytes} GiB`
-    }
-    else if(numBytes > 1048576) {  // 1 MiB
-        numBytes = (numBytes / 1048576).toFixed(1)
-        numBytes = `${numBytes} MiB`
-    }
-    else if(numBytes > 4096) {  // 4 KiB
-        numBytes = (numBytes / 1024).toFixed(1)
-        numBytes = `${numBytes} KiB`
-    }
-    else {
-        numBytes = `${numBytes} B`
-    }
+  if (numBytes > 1099511627776) { // 1 TiB
+    numBytes = (numBytes / 1099511627776).toFixed(2);
+    numBytes = `${numBytes} TiB`;
+  } else if (numBytes > 1073741824) { // 1 GiB
+    numBytes = (numBytes / 1073741824).toFixed(2);
+    numBytes = `${numBytes} GiB`;
+  } else if (numBytes > 1048576) { // 1 MiB
+    numBytes = (numBytes / 1048576).toFixed(1);
+    numBytes = `${numBytes} MiB`;
+  } else if (numBytes > 4096) { // 4 KiB
+    numBytes = (numBytes / 1024).toFixed(1);
+    numBytes = `${numBytes} KiB`;
+  } else {
+    numBytes = `${numBytes} B`;
+  }
 
-    return numBytes
+  return numBytes;
 }
 
 function escapeHtml(unsafe) {
-    return unsafe
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
- }
+  return unsafe
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+}
 
 /**
  * Full HTML Template for the listing pages.
@@ -208,14 +202,14 @@ function escapeHtml(unsafe) {
  * @param currentDir the name of the folder we're currently on
  * @param fullPath the full path to the folder we're currently on
  * @param listings an array of HTML_LINE_ITEM items
- * @returns {string} an HTML template for the listing pages
+ * @return {string} an HTML template for the listing pages
  */
 const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>${currentDir === "/" ? "Root Directory" : currentDir} - ${SITE_NAME}</title>
+    <title>${currentDir === '/' ? 'Root Directory' : currentDir} - ${SITE_NAME}</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha256-T/zFmO5s/0aSwc6ics2KLxlfbewyRz6UNw1s3Ppf5gE=" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css" integrity="sha256-0fuNgzfNIlaClbDtmYyFxY8LTNCDrwsNshywr4AALy0=" crossorigin="anonymous">
@@ -223,7 +217,7 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
   <body class="bg-light">
     <div class="container">
       <div class="py-5 text-center">
-        <h1>${escapeHtml(currentDir === "/" ? SITE_NAME : currentDir)}</h1>
+        <h1>${escapeHtml(currentDir === '/' ? SITE_NAME : currentDir)}</h1>
         <p class="lead">${escapeHtml(fullPath)}</p>
       </div>
 
@@ -247,7 +241,7 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
     </div>
   </body>
 </html>
-`
+`;
 
 /**
  * HTML table row template for file/folders listings.
@@ -260,45 +254,45 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
  * @param size the value of the Content-Length header sent by the
  * @param uploaded the timestamp of when the file was uploaded to Backblaze
  * @param action In B2 the action field is 'folder' for folders.
- * @returns {string} the HTML template with variables filled in
+ * @return {string} the HTML template with variables filled in
  * @constructor
  */
 const HTML_LINE_ITEM = (link, basename, size, uploaded, action) => {
-    let icon
-    if (link === "..") {
-        icon = "level-up-alt"
-    } else if (action === "folder") {
-        icon = "folder-open"
-    } else if (/\.(jpe?g|png|bmp|tiff?|gif|webp|tga|cr2|nef|ico)$/i.test(basename)) {
-        icon = "file-image"
-    } else if (/\.(pub|txt|ini|cfg)$/i.test(basename)) {
-        icon = "file-alt"
-    } else if (/\.(mp4|mkv|wmv|flv|hls|ogv|avi)$/i.test(basename)) {
-        icon = "file-video"
-    } else if (/\.(mp3|wav|wma|flac|ogg|aac|m4a)$/i.test(basename)) {
-        icon = "file-audio"
-    } else if (/\.(zip|tgz|gz|tar|7z|rar|xz)$/i.test(basename)) {
-        icon = "file-archive"
-    } else if (/\.(docx?)$/i.test(basename)) {
-        icon = "file-word"
-    } else if (/\.(xlsx?)$/i.test(basename)) {
-        icon = "file-excel"
-    } else if (/\.(pp[st]x?)$/i.test(basename)) {
-        icon = "file-powerpoint"
-    } else if (/\.(pdf)$/i.test(basename)) {
-        icon = "file-pdf"
-    } else if (/\.([ch](?:pp)?|cs|css|js|json|java|vb[as]?|py)$/i.test(basename)) {
-        icon = "file-code"
-    } else if (/\.(csv)$/i.test(basename)) {
-        icon = "file-csv"
-    } else if (/\.(sig|asc)$/i.test(basename)) {
-        icon = "file-signature"
-    } else {
-        icon = "file"
-    }
+  let icon;
+  if (link === '..') {
+    icon = 'level-up-alt';
+  } else if (action === 'folder') {
+    icon = 'folder-open';
+  } else if (/\.(jpe?g|png|bmp|tiff?|gif|webp|tga|cr2|nef|ico)$/i.test(basename)) {
+    icon = 'file-image';
+  } else if (/\.(pub|txt|ini|cfg)$/i.test(basename)) {
+    icon = 'file-alt';
+  } else if (/\.(mp4|mkv|wmv|flv|hls|ogv|avi)$/i.test(basename)) {
+    icon = 'file-video';
+  } else if (/\.(mp3|wav|wma|flac|ogg|aac|m4a)$/i.test(basename)) {
+    icon = 'file-audio';
+  } else if (/\.(zip|tgz|gz|tar|7z|rar|xz)$/i.test(basename)) {
+    icon = 'file-archive';
+  } else if (/\.(docx?)$/i.test(basename)) {
+    icon = 'file-word';
+  } else if (/\.(xlsx?)$/i.test(basename)) {
+    icon = 'file-excel';
+  } else if (/\.(pp[st]x?)$/i.test(basename)) {
+    icon = 'file-powerpoint';
+  } else if (/\.(pdf)$/i.test(basename)) {
+    icon = 'file-pdf';
+  } else if (/\.([ch](?:pp)?|cs|css|js|json|java|vb[as]?|py)$/i.test(basename)) {
+    icon = 'file-code';
+  } else if (/\.(csv)$/i.test(basename)) {
+    icon = 'file-csv';
+  } else if (/\.(sig|asc)$/i.test(basename)) {
+    icon = 'file-signature';
+  } else {
+    icon = 'file';
+  }
 
-    return TEMPLATE_HTML_LINE_ITEM(link, basename, size, uploaded, icon)
-}
+  return TEMPLATE_HTML_LINE_ITEM(link, basename, size, uploaded, icon);
+};
 
 const TEMPLATE_HTML_LINE_ITEM = (link, basename, size, uploaded, icon) => `
 <tr>
@@ -308,6 +302,6 @@ const TEMPLATE_HTML_LINE_ITEM = (link, basename, size, uploaded, icon) => `
     <td>${size}</td>
     <td class="date-field">${uploaded}</td>
 </tr>
-`
+`;
 
-export default getB2Directory
+export default getB2Directory;

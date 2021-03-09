@@ -1,6 +1,6 @@
 // MIME Types for Content-Type HTTP header
-export const PLAIN_TEXT_CONTENT_TYPE = "text/plain;charset=utf-8"
-export const HTML_CONTENT_TYPE = "text/html;charset=utf-8"
+export const PLAIN_TEXT_CONTENT_TYPE = 'text/plain;charset=utf-8';
+export const HTML_CONTENT_TYPE = 'text/html;charset=utf-8';
 
 
 // B2 API URLs / Endpoints
@@ -12,18 +12,18 @@ export const HTML_CONTENT_TYPE = "text/html;charset=utf-8"
  *
  * @type {string}
  */
-export const B2_AUTHORIZE_URL = "https://api.backblazeb2.com/b2api/v2/b2_authorize_account"
+export const B2_AUTHORIZE_URL = 'https://api.backblazeb2.com/b2api/v2/b2_authorize_account';
 
 /**
- * Obtain a download authorization token. This is a special kind of token for 
- * downloading a subset of files from an account. The validity period of the 
- * token can be much longer than an authorization token's (you can request up 
+ * Obtain a download authorization token. This is a special kind of token for
+ * downloading a subset of files from an account. The validity period of the
+ * token can be much longer than an authorization token's (you can request up
  * to 1 week).
  * https://www.backblaze.com/b2/docs/b2_get_download_authorization.html
- * 
+ *
  * @type {string}
  */
-export const B2_GET_DOWNLOAD_AUTHORIZATION_ENDPOINT = "/b2api/v2/b2_get_download_authorization"
+export const B2_GET_DOWNLOAD_AUTHORIZATION_ENDPOINT = '/b2api/v2/b2_get_download_authorization';
 
 /**
  * List details of each bucket in the account. We use this to resolve a bucket
@@ -32,7 +32,7 @@ export const B2_GET_DOWNLOAD_AUTHORIZATION_ENDPOINT = "/b2api/v2/b2_get_download
  *
  * @type {string}
  */
-export const B2_LIST_BUCKETS_ENDPOINT = "/b2api/v2/b2_list_buckets"
+export const B2_LIST_BUCKETS_ENDPOINT = '/b2api/v2/b2_list_buckets';
 
 /**
  * List file names in a given bucket, optionally with a prefix.
@@ -40,7 +40,7 @@ export const B2_LIST_BUCKETS_ENDPOINT = "/b2api/v2/b2_list_buckets"
  *
  * @type {string}
  */
-export const B2_LIST_FILE_NAMES_ENDPOINT = "/b2api/v2/b2_list_file_names"
+export const B2_LIST_FILE_NAMES_ENDPOINT = '/b2api/v2/b2_list_file_names';
 
 
 // Workers KV Keys
@@ -50,7 +50,7 @@ export const B2_LIST_FILE_NAMES_ENDPOINT = "/b2api/v2/b2_list_file_names"
  *
  * @type {string}
  */
-export const KV_CONFIG_KEY = "b2auth"
+export const KV_CONFIG_KEY = 'b2auth';
 
 
 // Cache-Control header constants
@@ -60,20 +60,20 @@ export const KV_CONFIG_KEY = "b2auth"
  *
  * @type {number}
  */
-export const CACHE_AGE_SECONDS = 604800  // 1 week in seconds
+export const CACHE_AGE_SECONDS = 604800; // 1 week in seconds
 
 /**
  * How long to cache a directory listing page
  * @type {number}
  */
-export const CACHE_DIR_SECONDS = 30
+export const CACHE_DIR_SECONDS = 30;
 
 /**
  * How long error pages should be cached for
  *
  * @type {number}
  */
-export const CACHE_ERRORS_SECONDS = 10
+export const CACHE_ERRORS_SECONDS = 10;
 
 
 /**
@@ -88,7 +88,7 @@ export const CACHE_ERRORS_SECONDS = 10
  *
  * @type {number}
  */
-export const SECONDS_TO_CACHE_KV_AUTH_STALE = 300
+export const SECONDS_TO_CACHE_KV_AUTH_STALE = 300;
 
 /**
  * Unlike the above, if a request comes in and the auth token hasn't been
@@ -101,4 +101,4 @@ export const SECONDS_TO_CACHE_KV_AUTH_STALE = 300
  *
  * @type {number}
  */
-export const SECONDS_TO_CACHE_KV_AUTH_INVALID = 43200  // 12 hours in seconds
+export const SECONDS_TO_CACHE_KV_AUTH_INVALID = 43200; // 12 hours in seconds
