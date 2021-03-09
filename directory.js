@@ -97,7 +97,7 @@ async function convertListFileNamesToHTML(request, response) {
 
     // make sure folders show up first
     for(const file of respJson.files) {
-        if(/(^\.bzEmpty|\/\.bzEmpty)$/.test(file.fileName)) {
+        if(/(^|\/)\.bzEmpty$/.test(file.fileName)) {
             // skip .bzEmpty files which are there to help create "folders"
         }
         else if(file.action === "folder") {
@@ -122,7 +122,7 @@ async function convertListFileNamesToHTML(request, response) {
         listings += convertFileInfoJsonToHTML(baseFileUrl, file, prefixLength)
     }
 
-    let html = HTML_FILE_LIST(currentDir, fullPath, listings)
+    let html = HTML_FILE_LIST(currentDir, "/" + fullPath, listings)
     return new Response(html, {
         status: 200,
         statusText: "OK",
@@ -218,7 +218,7 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>${currentDir} - ${SITE_NAME}</title>
+    <title>${currentDir === "/" ? "Root Directory" : currentDir} - ${SITE_NAME}</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha256-T/zFmO5s/0aSwc6ics2KLxlfbewyRz6UNw1s3Ppf5gE=" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css" integrity="sha256-0fuNgzfNIlaClbDtmYyFxY8LTNCDrwsNshywr4AALy0=" crossorigin="anonymous">
