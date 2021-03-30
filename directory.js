@@ -96,8 +96,10 @@ async function convertListFileNamesToHTML(request, response) {
 
   // make sure folders show up first
   for (const file of respJson.files) {
-    if (/(^|\/)\.bzEmpty$/.test(file.fileName)) {
+    if (/(?:^|\/)\.bzEmpty$/.test(file.fileName)) {
       // skip .bzEmpty files which are there to help create "folders"
+    } else if (/(?:^|\/)\.[^\/]*\/?$/.test(file.fileName)) {
+      // skip dot-files so they're "hidden"
     } else if (file.action === 'folder') {
       folders.push(file);
     } else {
