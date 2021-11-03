@@ -2,6 +2,7 @@
     "name": "b2cdn",
     "version": "1.0.0",
     "description": "A Cloudflare Worker for downloading files from a private B2 bucket",
+    "repository": "https://github.com/iBug/cf-b2cdn",
     "main": "index.js",
     "author": "Phillip Stromberg",
     "license": "MIT",
