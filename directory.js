@@ -88,7 +88,7 @@ async function convertListFileNamesToHTML(request, response) {
 
   let listings = '';
   if (prefixLength > 0) {
-    listings = HTML_LINE_ITEM('..', 'Parent directory', '', '');
+    listings = HTML_LINE_ITEM('..', 'Parent directory', '', '', '');
   }
 
   const folders = [];
@@ -147,14 +147,16 @@ function convertFileInfoJsonToHTML(baseUrl, file, prefixLength) {
     return '';
   }
 
-  let dateStr = ''; let size = '';
+  let dateStr = '', sizeStr = '', sizeActual = '';
   if (file.action !== 'folder') {
     const ts = new Date(file.uploadTimestamp);
-    dateStr = ts.toUTCString();
-    size = getHumanReadableFileSize(file.contentLength);
+    dateStr = ts.toISOString().replace('T', ' ').split('.')[0];
+    let size = file.contentLength;
+    sizeStr = getHumanReadableFileSize(size);
+    sizeActual = size.toLocaleString() + (size === 1 ? ' byte' : ' bytes');
   }
 
-  return HTML_LINE_ITEM(basename, basename, size, dateStr, file.action);
+  return HTML_LINE_ITEM(basename, basename, sizeStr, sizeActual, dateStr, file.action);
 }
 
 
@@ -217,29 +219,26 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
   </head>
   <body class="bg-light">
-    <div class="container">
+    <div class="container-fluid container-md">
       <div class="py-5 text-center">
         <h1>${escapeHtml(currentDir === '/' ? SITE_NAME : currentDir)}</h1>
         <p class="lead">${escapeHtml(fullPath)}</p>
       </div>
+    </div>
 
-      <div class="row mb-4">
-        <div class="col-md-12">
-          <table class="table table-hover border bg-white">
-            <thead class="thead-light">
-              <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Size</th>
-                <th scope="col">Uploaded</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${listings}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
+    <div class="container-fluid container-md table-responsive">
+      <table class="table table-hover border bg-white text-nowrap">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Size</th>
+            <th scope="col">Uploaded</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${listings}
+        </tbody>
+      </table>
     </div>
   </body>
 </html>
@@ -259,7 +258,7 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
  * @return {string} the HTML template with variables filled in
  * @constructor
  */
-const HTML_LINE_ITEM = (link, basename, size, uploaded, action) => {
+const HTML_LINE_ITEM = (link, basename, sizeStr, sizeTitle, uploaded, action) => {
   let icon;
   if (link === '..') {
     icon = 'level-up-alt';
@@ -293,15 +292,15 @@ const HTML_LINE_ITEM = (link, basename, size, uploaded, action) => {
     icon = 'file';
   }
 
-  return TEMPLATE_HTML_LINE_ITEM(link, basename, size, uploaded, icon);
+  return TEMPLATE_HTML_LINE_ITEM(link, basename, sizeStr, sizeTitle, uploaded, icon);
 };
 
-const TEMPLATE_HTML_LINE_ITEM = (link, basename, size, uploaded, icon) => `
+const TEMPLATE_HTML_LINE_ITEM = (link, basename, sizeStr, sizeTitle, uploaded, icon) => `
 <tr>
     <th scope="row">
         <a href="${link}"><i class="fas fa-fw fa-lg fa-${icon}" aria-hidden="true"></i> ${escapeHtml(basename)}</a>
     </th>
-    <td>${size}</td>
+    <td><span title="${sizeTitle}">${sizeStr}</td>
     <td class="date-field">${uploaded}</td>
 </tr>
 `;
