@@ -18,9 +18,9 @@ const CACHE = caches.default;
  * @type {object}
  */
 const B2 = {
-  date: undefined, // the JSON we persisted in KV with our auth token and more
-  lastRefresh: undefined, // timestamp of when we last fetched our auth token from KV
-};
+  data: undefined,  // the JSON we persisted in KV with our auth token and more
+  lastRefresh: undefined,  // timestamp of when we last fetched our auth token from KV
+}
 
 
 /**
@@ -50,12 +50,21 @@ function addSecurityHeaders(response) {
 /**
  * Attempts to pull our b2config object out of KV storage.
  *
- * @return {Promise<void>}
+ * @param {Event} event an event we can call "waitUntil" on
+ * @returns {Promise<void>}
  */
-async function refreshB2Config() {
-  console.log('Getting our B2 authorization token from KV...');
-  B2.data = JSON.parse(await B2CDN.get(KV_CONFIG_KEY));
-  B2.lastRefresh = Date.now();
+async function refreshB2Config(event) {
+  console.log("Getting our B2 authorization token from KV...")
+  const data = await B2CDN.get(KV_CONFIG_KEY)
+  if (data === null) {
+    console.log("Looks like the cron job has never run. We will do it " +
+      "now to get our authorization key.")
+    // perform the cron job ourselves if it has never run before
+    B2.data = await handleAuthCronJob(event);
+  } else {
+    B2.data = JSON.parse(data)
+  }
+  B2.lastRefresh = Date.now()
 }
 
 
@@ -76,21 +85,22 @@ async function handleRequest(event) {
   const request = event.request;
 
   // return from cache if we've seen this before and the response isn't stale
-  const cachedResponse = await CACHE.match(request.clone());
-  if (cachedResponse !== undefined) {
-    console.log(`Served cached response for ${event.request.url}`);
-    return cachedResponse;
+  const cachedResponse = await CACHE.match(request.clone())
+  if (cachedResponse !== undefined && !/no-cache/i.test(request.headers.get("Cache-Control"))) {
+      console.log(`Served cached response for ${event.request.url}`)
+      return cachedResponse
   }
 
   const secondsSinceRefresh = (Date.now() - B2.lastRefresh) / 1000;
 
   if (B2.data === undefined || isNaN(secondsSinceRefresh) || secondsSinceRefresh > SECONDS_TO_CACHE_KV_AUTH_INVALID) {
     // the config is either very old or hasn't even been loaded from KV yet
-    await refreshB2Config();
+    await refreshB2Config(event)
   } else if (secondsSinceRefresh > SECONDS_TO_CACHE_KV_AUTH_STALE) {
     // we'll be using the current token but this schedules the latest one to be read from KV
-    console.log('Auth token is a little old, use it, but also refresh it in the background from KV');
-    event.waitUntil(refreshB2Config());
+    console.log("Auth token is a little old. We will use it, but also " +
+      "refresh it in the background from KV.")
+    event.waitUntil(refreshB2Config(event))
   }
 
   const r = new Router();

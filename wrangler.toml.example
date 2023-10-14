@@ -1,10 +1,8 @@
 name = "b2cdn"
-type = "webpack"
 
 account_id = ""
 workers_dev = false
 routes = ["example.com/*", "dir.example.com/*", "www.example.com/*"]
-zone_id = ""
 
 [vars]
 B2ACCESS = "Your B2 Application Access Key ID"

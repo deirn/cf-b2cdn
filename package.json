@@ -4,14 +4,14 @@
     "description": "A Cloudflare Worker for downloading files from a private B2 bucket",
     "repository": "https://github.com/iBug/cf-b2cdn",
     "main": "index.js",
-    "author": "Phillip Stromberg",
+    "author": ["Phillip Stromberg", "iBug"],
     "license": "MIT",
     "dependencies": {
         "serverless-cloudflare-workers": "^1.2.0"
     },
     "devDependencies": {
-        "@cloudflare/wrangler": "^1.13.0",
         "eslint": "^7.21.0",
-        "eslint-config-google": "^0.14.0"
+        "eslint-config-google": "^0.14.0",
+        "wrangler": "^2.10.0"
     }
 }

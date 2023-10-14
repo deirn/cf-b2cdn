@@ -167,10 +167,13 @@ export async function persistConfigObject(b2config) {
  * and puts it in Workers KV for retrieval by our other Worker that actually does the downloading from the bucket.
  *
  * @param {Event} event the fetch event that triggered the Worker
+ * @returns {Promise<Object>} the B2 configuration object retrieved from B2's
+ *                            authorization endpoint
  */
 async function handleAuthCronJob(event) {
-  const b2config = await getB2ConfigObject();
-  return persistConfigObject(b2config);
+  const b2config = await getB2ConfigObject()
+  event.waitUntil(persistConfigObject(b2config))
+  return b2config
 }
 
 export default handleAuthCronJob;
