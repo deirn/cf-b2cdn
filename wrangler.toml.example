@@ -1,4 +1,6 @@
 name = "b2cdn"
+index = "index.js"
+compatibility_date = "2023-10-01"
 
 account_id = ""
 workers_dev = false
