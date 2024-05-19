@@ -5,7 +5,6 @@ import {
   KV_CONFIG_KEY,
 } from './constants';
 import {rewriteErrorResponse} from './error_handling';
-import {HEAD} from './config';
 
 
 function urlToB2Path(url) {
@@ -89,7 +88,7 @@ async function convertListFileNamesToHTML(request, response) {
 
   let listings = '';
   if (prefixLength > 0) {
-    listings = HTML_LINE_ITEM('..', 'Parent directory', '', '', '');
+    listings = HTML_LINE_ITEM('..', '..', '', '', '');
   }
 
   const folders = [];
@@ -201,6 +200,20 @@ function escapeHtml(unsafe) {
       .replace(/'/g, '&#039;');
 }
 
+function fullPathAnchors(fullPath) {
+  let res = `<a class="mx-1" href="/">${SITE_NAME}</a>`;
+
+  let parent = '';
+  const split = fullPath.split('/');
+  for (let i = 1; i < (split.length - 1); i++) {
+    const path = split[i];
+    parent += `${path}/`;
+    res += `/<a class="mx-1" href="${parent}">${path}</a>`;
+  }
+
+  return res + '/';
+}
+
 /**
  * Full HTML Template for the listing pages.
  *
@@ -218,25 +231,14 @@ const HTML_FILE_LIST = (currentDir, fullPath, listings) => `<!DOCTYPE HTML>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha256-DF7Zhf293AJxJNTmh5zhoYYIMs2oXitRfBjY+9L//AY=" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
-    ${HEAD}
   </head>
   <body class="bg-light">
     <div class="container-fluid container-md">
-      <div class="py-5 text-center">
-        <h1>${escapeHtml(currentDir === '/' ? SITE_NAME : currentDir)}</h1>
-        <p class="lead">${escapeHtml(fullPath)}</p>
-      </div>
+      <div class="lead py-2">${fullPathAnchors(fullPath)}</div>
     </div>
 
     <div class="container-fluid container-md table-responsive">
       <table class="table table-hover border bg-white text-nowrap">
-        <thead class="thead-light">
-          <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Size</th>
-            <th scope="col">Uploaded</th>
-          </tr>
-        </thead>
         <tbody>
           ${listings}
         </tbody>
@@ -274,7 +276,7 @@ const HTML_LINE_ITEM = (link, basename, sizeStr, sizeTitle, uploaded, action) =>
     icon = 'file-video';
   } else if (/\.(mp3|wav|wma|flac|ogg|aac|m4a)$/i.test(basename)) {
     icon = 'file-audio';
-  } else if (/\.(zip|tgz|gz|tar|7z|rar|xz)$/i.test(basename)) {
+  } else if (/\.(zip|tgz|gz|tar|7z|rar|xz|jar)$/i.test(basename)) {
     icon = 'file-archive';
   } else if (/\.(docx?)$/i.test(basename)) {
     icon = 'file-word';
@@ -299,11 +301,11 @@ const HTML_LINE_ITEM = (link, basename, sizeStr, sizeTitle, uploaded, action) =>
 
 const TEMPLATE_HTML_LINE_ITEM = (link, basename, sizeStr, sizeTitle, uploaded, icon) => `
 <tr>
-    <th scope="row">
+    <td scope="row">
         <a href="${link}"><i class="fas fa-fw fa-lg fa-${icon}" aria-hidden="true"></i> ${escapeHtml(basename)}</a>
-    </th>
-    <td><span title="${sizeTitle}">${sizeStr}</td>
-    <td class="date-field">${uploaded}</td>
+    </td>
+    <td class="text-right"><span title="${sizeTitle}">${sizeStr}</td>
+    <td class="text-right">${uploaded}</td>
 </tr>
 `;
 

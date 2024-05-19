@@ -30,7 +30,7 @@ async function getB2File(request, b2) {
     return Response.redirect(requestedUrl.toString(), 301);
   }
   const url = new URL(b2.data.downloadUrl);
-  url.pathname = `/file/${B2BUCKET}/${requestedUrl.pathname}`;
+  url.pathname = `/file/${B2BUCKET}${requestedUrl.pathname}`;
 
   const response = await fetch(url.toString(), {
     cf: {

@@ -6,3 +6,4 @@ package-lock.json
 /.idea/
 /wrangler.toml
 /config.js
+.wrangler/
