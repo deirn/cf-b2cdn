@@ -304,7 +304,7 @@ const TEMPLATE_HTML_LINE_ITEM = (link, basename, sizeStr, sizeTitle, uploaded, i
     <td scope="row">
         <a href="${link}"><i class="fas fa-fw fa-lg fa-${icon}" aria-hidden="true"></i> ${escapeHtml(basename)}</a>
     </td>
-    <td class="text-right"><span title="${sizeTitle}">${sizeStr}</td>
+    <td class="text-right"><span title="${sizeTitle}">${sizeStr}</span></td>
     <td class="text-right">${uploaded}</td>
 </tr>
 `;
