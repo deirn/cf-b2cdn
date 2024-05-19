@@ -203,7 +203,7 @@ function escapeHtml(unsafe) {
 function fullPathAnchors(fullPath) {
   let res = `<a class="mx-1" href="/">${SITE_NAME}</a>`;
 
-  let parent = '';
+  let parent = '/';
   const split = fullPath.split('/');
   for (let i = 1; i < (split.length - 1); i++) {
     const path = split[i];
